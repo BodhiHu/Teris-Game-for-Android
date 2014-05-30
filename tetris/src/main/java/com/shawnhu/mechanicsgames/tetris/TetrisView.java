@@ -7,13 +7,44 @@ import android.os.Message;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.security.InvalidParameterException;
 import java.util.Random;
 
 
 public class TetrisView extends TileView {
     static final String TETRIS_SCORE = "score";
+    static final String TETRIS_STATE = "state";
+    static final String TETRIS_VIEW  = "view";
     enum State {
-        STARTED, PAUSED, RUNNING, OVER,
+        STARTED, PAUSED, RUNNING, OVER;
+        static int getVofState(State s) {
+            switch (s) {
+                case STARTED:
+                    return 0;
+                case PAUSED:
+                    return 1;
+                case RUNNING:
+                    return 2;
+                case OVER:
+                    return 3;
+            }
+            return -1;
+        }
+
+        static State getSofValue(int v) {
+            switch (v) {
+                case 0:
+                    return STARTED;
+                case 1:
+                    return PAUSED;
+                case 2:
+                    return RUNNING;
+                case 3:
+                    return OVER;
+            }
+
+            throw new InvalidParameterException("valid range is from 0~3");
+        }
     }
 
     private GameListener mGameListener;
@@ -52,8 +83,7 @@ public class TetrisView extends TileView {
     }
 
     protected boolean initTetrisView() {
-        mScore = 0;
-
+        clearTiles();
         return true;
     }
 
@@ -63,16 +93,29 @@ public class TetrisView extends TileView {
     }
 
     public void saveGame(Bundle out) {
+        out.putInt(TETRIS_SCORE, mScore);
+        out.putInt(TETRIS_STATE, State.getVofState(mState));
+        out.putParcelable(TETRIS_VIEW, this.mTileViewInfo);
 
     }
+    protected boolean restoreTetris() {
+    }
     public boolean startTetris(Bundle savedState) {
+        initTetrisView();
         if (savedState != null) {
+            mScore = savedState.getInt(TETRIS_SCORE);
+            mState = State.getSofValue(savedState.getInt(TETRIS_STATE));
+            this.mTileViewInfo = savedState.getParcelable(TETRIS_VIEW);
+        } else {
+            mScore = 0;
+            mState = State.STARTED;
         }
-        mScore = 0;
 
         if (mGameListener != null) {
             mGameListener.onStarted();
         }
+
+        mState = State.STARTED;
         return true;
     }
     public boolean pauseTetris() {

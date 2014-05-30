@@ -18,17 +18,21 @@ import android.view.View;
  */
 public class TileView extends View {
 
+    static TileViewInfo mTileViewInfo = new TileViewInfo();
     static class TileViewInfo implements Parcelable {
 
-        int mTileSize;
-        int mXTileCount;
-        int mYTileCount;
-        private int mTileType[][];
+        static int mTileSize;
+        static int mXTileCount;
+        static int mYTileCount;
+        static int mTileType[][];
         // color OR bitmap index;
-        private int mTileInfo[][];
-        private boolean mTileNeedsRedraw[][];
-        private Bitmap[] mBmpArray;
+        static int mTileInfo[][];
+        static boolean mTileNeedsRedraw[][];
+        static Bitmap[] mBmpArray;
+        static boolean restoreTileView = false;
 
+        private TileViewInfo() {
+        }
         public int describeContents() {
             return 0;
         }
@@ -54,7 +58,7 @@ public class TileView extends View {
             }
 
             public TileViewInfo[] newArray(int size) {
-                return new TileViewInfo[size];
+                return null;
             }
         };
 
@@ -67,14 +71,18 @@ public class TileView extends View {
             in.readIntArray(infoarray);
             mTileType = new int[mXTileCount][mYTileCount];
             mTileInfo = new int[mXTileCount][mYTileCount];
+            mTileNeedsRedraw = new boolean[mXTileCount][mYTileCount];
             for (int i = 0; i < mYTileCount; i++) {
                 for (int j = 0; j < mXTileCount; j++) {
                     mTileType[i][j] = typearray[j + i*mXTileCount];
                     mTileInfo[i][j] = infoarray[j + i*mXTileCount];
+                    mTileNeedsRedraw[i][j] = true;
                 }
             }
             //TODO: can this work?
             mBmpArray = (Bitmap[]) in.readArray(ClassLoader.getSystemClassLoader());
+
+            restoreTileView = true;
         }
 
     }
@@ -105,7 +113,7 @@ public class TileView extends View {
         super(context, attrs, defStyle);
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.TileView);
-        mTileSize = a.getDimensionPixelSize(R.styleable.TileView_tileSize, 12);
+        TileViewInfo.mTileSize = a.getDimensionPixelSize(R.styleable.TileView_tileSize, 12);
 
         a.recycle();
 
@@ -117,8 +125,8 @@ public class TileView extends View {
      * 
      */
     public void clearTiles() {
-        for (int x = 0; x < mXTileCount; x++) {
-            for (int y = 0; y < mYTileCount; y++) {
+        for (int x = 0; x < TileViewInfo.mXTileCount; x++) {
+            for (int y = 0; y < TileViewInfo.mYTileCount; y++) {
                 setTileBmp(0, x, y);
             }
         }
@@ -131,38 +139,39 @@ public class TileView extends View {
      * @param drawable
      */
     public void loadBmp(int key, Drawable drawable) {
-        Bitmap bitmap = Bitmap.createBitmap(mTileSize, mTileSize, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(
+                TileViewInfo.mTileSize, TileViewInfo.mTileSize, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, mTileSize, mTileSize);
+        drawable.setBounds(0, 0, TileViewInfo.mTileSize, TileViewInfo.mTileSize);
         drawable.draw(canvas);
 
-        mBmpArray[key] = bitmap;
+        TileViewInfo.mBmpArray[key] = bitmap;
     }
 
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        for (int x = 0; x < mXTileCount; x += 1) {
-            for (int y = 0; y < mYTileCount; y += 1) {
-                if (mTileNeedsRedraw[x][y]) {
-                    switch (mTileType[x][y]) {
+        for (int x = 0; x < TileViewInfo.mXTileCount; x += 1) {
+            for (int y = 0; y < TileViewInfo.mYTileCount; y += 1) {
+                if (TileViewInfo.mTileNeedsRedraw[x][y]) {
+                    switch (TileViewInfo.mTileType[x][y]) {
                         case BMP:
                             mPaint.setColor(mPaintOrigColor);
-                            canvas.drawBitmap(mBmpArray[mTileInfo[x][y]], mXOffset + x * mTileSize,
-                                mYOffset + y * mTileSize, mPaint);
+                            canvas.drawBitmap(TileViewInfo.mBmpArray[TileViewInfo.mTileInfo[x][y]], mXOffset + x * TileViewInfo.mTileSize,
+                                mYOffset + y * TileViewInfo.mTileSize, mPaint);
                             break;
                         case COLOR:
-                            int left = mXOffset + x * mTileSize;
-                            int top  = mYOffset + y * mTileSize;
-                            int right = left + mTileSize;
-                            int bottom = top + mTileSize;
+                            int left = mXOffset + x * TileViewInfo.mTileSize;
+                            int top  = mYOffset + y * TileViewInfo.mTileSize;
+                            int right = left + TileViewInfo.mTileSize;
+                            int bottom = top + TileViewInfo.mTileSize;
                             Rect rect = new Rect(left + PADDING, top + PADDING, right - PADDING, bottom - PADDING);
-                            mPaint.setColor(mTileInfo[x][y]);
+                            mPaint.setColor(TileViewInfo.mTileInfo[x][y]);
                             canvas.drawRect(rect, mPaint);
                             break;
                     }
 
-                    mTileNeedsRedraw[x][y] = false;
+                    TileViewInfo.mTileNeedsRedraw[x][y] = false;
                 }
             }
         }
@@ -177,7 +186,7 @@ public class TileView extends View {
      */
 
     public void resetBmps(int tilecount) {
-        mBmpArray = new Bitmap[tilecount];
+        TileViewInfo.mBmpArray = new Bitmap[tilecount];
     }
 
     /**
@@ -189,28 +198,37 @@ public class TileView extends View {
      * @param y
      */
     public void setTileBmp(int bmpIndex, int x, int y) {
-        mTileType[x][y] = BMP;
-        mTileInfo[x][y] = bmpIndex;
-        mTileNeedsRedraw[x][y] = true;
+        TileViewInfo.mTileType[x][y] = BMP;
+        TileViewInfo.mTileInfo[x][y] = bmpIndex;
+        TileViewInfo.mTileNeedsRedraw[x][y] = true;
     }
 
     public void setTileColor(int color, int x, int y) {
-        mTileType[x][y] = COLOR;
-        mTileInfo[x][y] = color;
-        mTileNeedsRedraw[x][y] = true;
+        TileViewInfo.mTileType[x][y] = COLOR;
+        TileViewInfo.mTileInfo[x][y] = color;
+        TileViewInfo.mTileNeedsRedraw[x][y] = true;
     }
 
+    //TODO
+    protected void restoreTileView() {
+    }
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        mXTileCount = (int) Math.floor(w / mTileSize);
-        mYTileCount = (int) Math.floor(h / mTileSize);
+        if (TileViewInfo.restoreTileView) {
+            restoreTileView();
+            TileViewInfo.restoreTileView = false;
+        } else {
+            TileViewInfo.mXTileCount = (int) Math.floor(w / TileViewInfo.mTileSize);
+            TileViewInfo.mYTileCount = (int) Math.floor(h / TileViewInfo.mTileSize);
 
-        mXOffset = ((w - (mTileSize * mXTileCount)) / 2);
-        mYOffset = ((h - (mTileSize * mYTileCount)) / 2);
+            mXOffset = ((w - (TileViewInfo.mTileSize * TileViewInfo.mXTileCount)) / 2);
+            mYOffset = ((h - (TileViewInfo.mTileSize * TileViewInfo.mYTileCount)) / 2);
 
-        mTileInfo = new int[mXTileCount][mYTileCount];
-        mTileType = new int[mXTileCount][mYTileCount];
-        clearTiles();
+            TileViewInfo.mTileInfo = new int[TileViewInfo.mXTileCount][TileViewInfo.mYTileCount];
+            TileViewInfo.mTileType = new int[TileViewInfo.mXTileCount][TileViewInfo.mYTileCount];
+            TileViewInfo.mTileNeedsRedraw = new boolean[TileViewInfo.mXTileCount][TileViewInfo.mYTileCount];
+            clearTiles();
+        }
     }
 
 }
