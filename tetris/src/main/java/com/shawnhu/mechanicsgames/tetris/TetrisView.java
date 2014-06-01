@@ -14,6 +14,7 @@ import java.util.Random;
 public class TetrisView extends TileView {
     static final String TETRIS_SCORE = "score";
     static final String TETRIS_STATE = "state";
+    static final String TETRIS_CURRENT = "current tetrimino"
     static final String TETRIS_VIEW  = "view";
     enum State {
         STARTED, PAUSED, RUNNING, OVER;
@@ -50,6 +51,9 @@ public class TetrisView extends TileView {
     private GameListener mGameListener;
     private State mState;
     private int mScore;
+    private static Tetriminos mTetrimino;
+    private static int tetriminoStartX;
+    private static int tetriminoStartY;
 
     private Random RND = new Random();
 
@@ -76,9 +80,8 @@ public class TetrisView extends TileView {
 
     }
     private RefreshHandler mRefreshHandler = new RefreshHandler();
-    private long mRefreshDelay = 600;
+    private static final long mRefreshDelay = 600;
     protected void updateTetrisView() {
-        updateTetris();
         mRefreshHandler.delayedUpdate(mRefreshDelay);
     }
 
@@ -95,6 +98,7 @@ public class TetrisView extends TileView {
     public void saveGame(Bundle out) {
         out.putInt(TETRIS_SCORE, mScore);
         out.putInt(TETRIS_STATE, State.getVofState(mState));
+        out.putInt(TETRIS_CURRENT, Tetriminos.Tetrimino.idxOfType(mTetrimino.mT));
         out.putParcelable(TETRIS_VIEW, this.mTileViewInfo);
 
     }
@@ -105,6 +109,7 @@ public class TetrisView extends TileView {
         if (savedState != null) {
             mScore = savedState.getInt(TETRIS_SCORE);
             mState = State.getSofValue(savedState.getInt(TETRIS_STATE));
+            mTetrimino.mT = Tetriminos.Tetrimino.typeOfIdx(savedState.getInt(TETRIS_CURRENT));
             this.mTileViewInfo = savedState.getParcelable(TETRIS_VIEW);
         } else {
             mScore = 0;
@@ -116,6 +121,8 @@ public class TetrisView extends TileView {
         }
 
         mState = State.STARTED;
+
+        updateTetrisView();
         return true;
     }
     public boolean pauseTetris() {
@@ -131,14 +138,37 @@ public class TetrisView extends TileView {
     protected boolean checkCollision() {
         return false;
     }
-    //@return: if null game over
-    protected Tetriminos newTetrimino() {
+    //@return: if false game over
+    protected boolean genNewTetrimino() {
         int rn = RND.nextInt();
         rn %= Tetriminos.Tetrimino.totalTypes;
-        return new Tetriminos(Tetriminos.Tetrimino.typeOfIdx(rn));
-    }
-    protected void updateTetris() {
+        mTetrimino = new Tetriminos(Tetriminos.Tetrimino.typeOfIdx(rn));
+        calculateTetriminoStartXY();
+        mTetrimino.setCoordinate(tetriminoStartX, tetriminoStartY);
 
+        return true;
+    }
+    private boolean isCollided() {
+        for (int i = 0; i < mTetrimino.mHeight; i++) {
+            for (int j = 0; j < mTetrimino.mWidth; j++) {
+                if (mTetrimino.mTetrimino[i][j] == 0) {
+                    continue;
+                }
+
+                int tile_row = i + mTetrimino.mY;
+                int tile_col = i + mTetrimino.mX;
+
+                if (mTileViewInfo.mTileType[tile_row][tile_col] != EMPTY) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+    private void calculateTetriminoStartXY() {
+        tetriminoStartY = 0;
+        tetriminoStartX = (mTileViewInfo.mXTileCount - mTetrimino.mWidth) / 2;
     }
     protected void mergeTetris() {
 

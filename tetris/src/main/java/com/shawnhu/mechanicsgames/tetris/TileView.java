@@ -97,8 +97,9 @@ public class TileView extends View {
     private final Paint mPaint = new Paint();
     private final int mPaintOrigColor = mPaint.getColor();
 
-    static final int COLOR = 0;
-    static final int BMP = 1;
+    static final int EMPTY  = 0;
+    static final int COLOR = 1 << 0;
+    static final int BMP   = 1 << 1;
 
     public TileView(Context context, AttributeSet attrs) {
         super(context, attrs);
