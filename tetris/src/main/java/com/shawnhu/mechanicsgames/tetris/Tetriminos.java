@@ -135,9 +135,16 @@ public class Tetriminos {
         }
     }
 
+    static boolean isOutOfBounds(int x, int y) {
+        if (x < 0 || (x+mWidth-1) > (mXTileNum-1) ||
+            y < 0 || (y+mHeight-1) > (mYTileNum-1)) {
+            return true;
+        }
+
+        return false;
+    }
     static boolean setCoordinate(int x, int y) {
-        if (x < 0 || x > mXTileNum-1 ||
-            y < 0 || y > mYTileNum-1) {
+        if (isOutOfBounds(x, y)) {
             return false;
         }
 

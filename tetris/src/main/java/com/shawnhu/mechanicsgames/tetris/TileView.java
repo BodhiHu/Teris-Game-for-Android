@@ -126,9 +126,9 @@ public class TileView extends View {
      * 
      */
     public void clearTiles() {
-        for (int x = 0; x < TileViewInfo.mXTileCount; x++) {
-            for (int y = 0; y < TileViewInfo.mYTileCount; y++) {
-                setTileBmp(0, x, y);
+        for (int r = 0; r < TileViewInfo.mYTileCount; r++) {
+            for (int c = 0; c < TileViewInfo.mXTileCount; c++) {
+                setTileBmp(0, r, c);
             }
         }
     }
@@ -195,13 +195,13 @@ public class TileView extends View {
      * should be drawn at the given x/y coordinates during the next invalidate/draw cycle.
      * 
      * @param bmpIndex
-     * @param x
-     * @param y
+     * @param r
+     * @param c
      */
-    public void setTileBmp(int bmpIndex, int x, int y) {
-        TileViewInfo.mTileType[x][y] = BMP;
-        TileViewInfo.mTileInfo[x][y] = bmpIndex;
-        TileViewInfo.mTileNeedsRedraw[x][y] = true;
+    public void setTileBmp(int bmpIndex, int r, int c) {
+        TileViewInfo.mTileType[r][c] = BMP;
+        TileViewInfo.mTileInfo[r][c] = bmpIndex;
+        TileViewInfo.mTileNeedsRedraw[r][c] = true;
     }
 
     public void setTileColor(int color, int x, int y) {
