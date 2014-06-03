@@ -73,8 +73,8 @@ public class TetrisView extends TileView {
     class RefreshHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            TetrisView.this.updateTetrisView();
             TetrisView.this.invalidate();
+            TetrisView.this.updateTetrisView(GRAVITY);
         }
 
         public void delayedUpdate(long millis) {
@@ -85,8 +85,20 @@ public class TetrisView extends TileView {
 
     }
     private RefreshHandler mRefreshHandler = new RefreshHandler();
-    private static final long mRefreshDelay = 600;
-    protected void updateTetrisView() {
+    private static long mRefreshDelay = 600;
+    private static final int UI = 0;
+    private static final int GRAVITY = 0;
+    protected void updateTetrisView(int how) {
+        if (mState == State.RUNNING) {
+            if (how == GRAVITY) {
+                if (mvTetrimino(DOWN, 1) <= 0) {
+                    if (!genNewTetrimino()) {
+                        mState = State.OVER;
+                        mGameListener.onGameOver();
+                    }
+                }
+            }
+        }
         mRefreshHandler.delayedUpdate(mRefreshDelay);
     }
 
@@ -234,39 +246,87 @@ public class TetrisView extends TileView {
     private int mvTetrimino(int direction, int steps) {
         int deltaDis;
         int greenDis;
+        int oldX = mTetrimino.mX;
+        int oldY = mTetrimino.mY;
         switch (direction) {
             case DOWN:
                 deltaDis = deltaHeight(mTetrimino.mX, mTetrimino.mY);
                 greenDis = deltaDis < steps ? deltaDis : steps;
                 mTetrimino.setCoordinate(mTetrimino.mX, mTetrimino.mY + greenDis);
-                return greenDis;
+                if (greenDis == deltaDis) {
+                    mergeTetris();
+                }
+                break;
             case LEFT:
                 deltaDis = deltaWidthL(mTetrimino.mX, mTetrimino.mY);
                 greenDis = deltaDis < steps ? deltaDis : steps;
                 mTetrimino.setCoordinate(mTetrimino.mX - greenDis, mTetrimino.mY);
-                return greenDis;
+                break;
             case RIGHT:
                 deltaDis = deltaWidthR(mTetrimino.mX, mTetrimino.mY);
                 greenDis = deltaDis < steps ? deltaDis : steps;
                 mTetrimino.setCoordinate(mTetrimino.mX + greenDis, mTetrimino.mY);
-                return greenDis;
+                break;
             default:
-                return -1;
+                greenDis = -1;
+                break;
         }
+
+        updateTetrimino(oldX, oldY);
+        return greenDis;
     }
-    private void updateTetrimino(int newX, int newY) {
-        for (int i = mTetrimino.mY; i < (mTetrimino.mY + mTetrimino.mHeight); i++) {
-            for (int j = mTetrimino.mX; j < (mTetrimino.mX + mTetrimino.mWidth); j++) {
+    private void updateTetrimino(int oldX, int oldY) {
+        for (int i = oldY; i < (oldY + mTetrimino.mHeight); i++) {
+            for (int j = oldX; j < (oldX + mTetrimino.mWidth); j++) {
                 setTileBmp(0, i, j);
-                setTileColor(mTetrimino.mColor, (i-mTetrimino.mY+newY), (j-mTetrimino.mX+newX));
+                setTileColor(mTetrimino.mColor, (i-oldY+mTetrimino.mY), (j-oldX+mTetrimino.mX));
             }
         }
+
+        updateTetrisView(UI);
     }
     private void calculateTetriminoStartXY() {
         tetriminoStartY = 0;
         tetriminoStartX = (mTileViewInfo.mXTileCount - mTetrimino.mWidth) / 2;
     }
     protected void mergeTetris() {
+        int is_row_filled = 0xff;
+        int score = 10;
+        int totalScore = 0;
+        float speed = 1;
+        for (int i = 0; i < mTetrimino.mHeight; i++) {
+            for (int j = 0; j < mTetrimino.mWidth; j++) {
+                is_row_filled &= mTileViewInfo.mTileType[i][j];
+            }
+            if (is_row_filled == 0xff) {
+                totalScore += score;
+                score *= 1.1;
+                speed *= 1.1;
+
+                //let gone the filled row
+                for (int k = 0; k < mTetrimino.mWidth; k++) {
+                    setTileBmp(EMPTY, i, k);
+                }
+                //move down the top rows
+                for (int l = i; l >= 0; l--) {
+                    for (int m = 0; m <=mTetrimino.mWidth; m++) {
+                        if (l > 0) {
+                            mTileViewInfo.mTileType[l][m] = mTileViewInfo.mTileType[l-1][m];
+                            mTileViewInfo.mTileInfo[l][m] = mTileViewInfo.mTileInfo[l-1][m];
+                            mTileViewInfo.mTileNeedsRedraw[l][m] = true;
+                        }
+                        if (l == 0) {
+                            setTileBmp(EMPTY, l, m);
+                        }
+                    }
+                }
+
+            }
+        }
+
+        mScore += totalScore;
+        mGameListener.onUpdateScore(mScore);
+        mRefreshDelay /= speed;
     }
 
 }
