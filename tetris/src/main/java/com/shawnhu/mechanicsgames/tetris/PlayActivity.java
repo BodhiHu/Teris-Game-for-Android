@@ -15,6 +15,7 @@ import android.os.Build;
 
 public class PlayActivity extends ActionBarActivity {
 
+    TetrisView mTetrisView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -24,6 +25,8 @@ public class PlayActivity extends ActionBarActivity {
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
         }
+
+        mTetrisView = findViewById(R.id.tetrisView);
     }
 
 

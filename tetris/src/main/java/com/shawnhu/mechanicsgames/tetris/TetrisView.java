@@ -51,7 +51,6 @@ public class TetrisView extends TileView {
     static final int DOWN = 0;
     static final int LEFT = 1;
     static final int RIGHT = 2;
-    static final int DIR_NUM = 3;
 
     private GameListener mGameListener;
     private State mState;
@@ -81,6 +80,12 @@ public class TetrisView extends TileView {
             removeMessages(0);
             sendMessageDelayed(obtainMessage(0), millis);
 
+        }
+        public void pause() {
+            removeMessages(0);
+        }
+        public void run() {
+            delayedUpdate(mRefreshDelay);
         }
 
     }
@@ -120,8 +125,6 @@ public class TetrisView extends TileView {
         out.putParcelable(TETRIS_VIEW, this.mTileViewInfo);
 
     }
-    protected boolean restoreTetris() {
-    }
     public boolean startTetris(Bundle savedState) {
         initTetrisView();
         if (savedState != null) {
@@ -140,17 +143,20 @@ public class TetrisView extends TileView {
 
         mState = State.STARTED;
 
-        updateTetrisView();
+        invalidate();
         return true;
     }
     public boolean pauseTetris() {
-        return false;
-    }
-    public boolean runTetris() {
+        mRefreshHandler.pause();
+        mGameListener.onPaused();
+        mState = State.PAUSED;
         return true;
     }
-    protected void gameOver() {
-
+    public boolean runTetris() {
+        mRefreshHandler.run();
+        mGameListener.onRun();
+        mState = State.RUNNING;
+        return true;
     }
 
     //@return: if false game over
@@ -298,7 +304,7 @@ public class TetrisView extends TileView {
             for (int j = 0; j < mTetrimino.mWidth; j++) {
                 is_row_filled &= mTileViewInfo.mTileType[i][j];
             }
-            if (is_row_filled == 0xff) {
+            if (is_row_filled != 0x00) {
                 totalScore += score;
                 score *= 1.1;
                 speed *= 1.1;

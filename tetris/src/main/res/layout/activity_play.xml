@@ -4,4 +4,51 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.shawnhu.mechanicsgames.tetris.PlayActivity"
-    tools:ignore="MergeRootFrame" />
+    tools:ignore="MergeRootFrame" >
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:padding="2dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_weight="1"
+                android:layout_marginRight="2dp"
+                android:text="Store"
+                android:id="@+id/textScore"
+                android:textAlignment="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:layout_weight="1"
+                android:layout_marginLeft="2dp"
+                android:text="Control"
+                android:id="@+id/textControl"
+                android:layout_gravity="center_horizontal"
+                android:textAlignment="center" />
+        </LinearLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center_horizontal">
+            <com.shawnhu.mechanicsgames.tetris.TetrisView
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:id="@+id/tetrisView" />
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>
