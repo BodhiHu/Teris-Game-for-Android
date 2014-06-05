@@ -53,7 +53,7 @@ public class TetrisView extends TileView {
     static final int RIGHT = 2;
 
     private GameListener mGameListener;
-    private State mState;
+    State mState;
     private int mScore;
     private static Tetriminos mTetrimino;
     private static int tetriminoStartX;

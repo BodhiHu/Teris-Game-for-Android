@@ -25,20 +25,22 @@
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:layout_weight="1"
                 android:layout_marginRight="2dp"
-                android:text="Store"
+                android:text="Store: 0"
                 android:id="@+id/textScore"
                 android:textAlignment="center" />
 
-            <TextView
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
                 android:layout_weight="1"
-                android:layout_marginLeft="2dp"
-                android:text="Control"
-                android:id="@+id/textControl"
-                android:layout_gravity="center_horizontal"
-                android:textAlignment="center" />
+                android:id="@+id/viewNextTetrimino" />
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Start"
+                android:id="@+id/buttonCtl" />
         </LinearLayout>
 
         <FrameLayout
