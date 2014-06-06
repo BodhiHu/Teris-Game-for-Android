@@ -51,6 +51,7 @@ public class TetrisView extends TileView {
     static final int DOWN = 0;
     static final int LEFT = 1;
     static final int RIGHT = 2;
+    static final int UP = 3;
 
     private GameListener mGameListener;
     State mState;
@@ -158,6 +159,53 @@ public class TetrisView extends TileView {
         mState = State.RUNNING;
         return true;
     }
+    public int mvTetrimino(int direction, int steps) {
+        int deltaDis;
+        int greenDis;
+        int oldX = mTetrimino.mX;
+        int oldY = mTetrimino.mY;
+        switch (direction) {
+            case DOWN:
+                deltaDis = deltaHeight(mTetrimino.mX, mTetrimino.mY);
+                greenDis = deltaDis < steps ? deltaDis : steps;
+                mTetrimino.setCoordinate(mTetrimino.mX, mTetrimino.mY + greenDis);
+                if (greenDis == deltaDis) {
+                    mergeTetris();
+                }
+                break;
+            case LEFT:
+                deltaDis = deltaWidthL(mTetrimino.mX, mTetrimino.mY);
+                greenDis = deltaDis < steps ? deltaDis : steps;
+                mTetrimino.setCoordinate(mTetrimino.mX - greenDis, mTetrimino.mY);
+                break;
+            case RIGHT:
+                deltaDis = deltaWidthR(mTetrimino.mX, mTetrimino.mY);
+                greenDis = deltaDis < steps ? deltaDis : steps;
+                mTetrimino.setCoordinate(mTetrimino.mX + greenDis, mTetrimino.mY);
+                break;
+            default:
+                greenDis = -1;
+                break;
+        }
+
+
+        return greenDis;
+    }
+    public boolean rotateTetrimino() {
+        mRefreshHandler.pause();
+        mTetrimino.rotateTeriminoClockWise90(mTetrimino);
+        if (isCollided(mTetrimino.mX, mTetrimino.mY)) {
+            //TODO: ugly wordaround
+            mTetrimino.rotateTeriminoClockWise90(mTetrimino);
+            mTetrimino.rotateTeriminoClockWise90(mTetrimino);
+            mTetrimino.rotateTeriminoClockWise90(mTetrimino);
+            return false;
+        }
+
+        mRefreshHandler.run();
+        updateTetrisView(UI);
+        return true;
+    }
 
     //@return: if false game over
     protected boolean genNewTetrimino() {
@@ -174,6 +222,10 @@ public class TetrisView extends TileView {
         return true;
     }
     private boolean isCollided(int X, int Y) {
+        if ((X + mTetrimino.mWidth - 1) > (mTileViewInfo.mXTileCount - 1) ||
+                (Y + mTetrimino.mHeight - 1) > (mTileViewInfo.mYTileCount - 1)) {
+            return false;
+        }
         for (int i = 0; i < mTetrimino.mHeight; i++) {
             for (int j = 0; j < mTetrimino.mWidth; j++) {
                 if (mTetrimino.mTetrimino[i][j] == 0) {
@@ -249,38 +301,6 @@ public class TetrisView extends TileView {
         return minDeltaWR;
     }
 
-    private int mvTetrimino(int direction, int steps) {
-        int deltaDis;
-        int greenDis;
-        int oldX = mTetrimino.mX;
-        int oldY = mTetrimino.mY;
-        switch (direction) {
-            case DOWN:
-                deltaDis = deltaHeight(mTetrimino.mX, mTetrimino.mY);
-                greenDis = deltaDis < steps ? deltaDis : steps;
-                mTetrimino.setCoordinate(mTetrimino.mX, mTetrimino.mY + greenDis);
-                if (greenDis == deltaDis) {
-                    mergeTetris();
-                }
-                break;
-            case LEFT:
-                deltaDis = deltaWidthL(mTetrimino.mX, mTetrimino.mY);
-                greenDis = deltaDis < steps ? deltaDis : steps;
-                mTetrimino.setCoordinate(mTetrimino.mX - greenDis, mTetrimino.mY);
-                break;
-            case RIGHT:
-                deltaDis = deltaWidthR(mTetrimino.mX, mTetrimino.mY);
-                greenDis = deltaDis < steps ? deltaDis : steps;
-                mTetrimino.setCoordinate(mTetrimino.mX + greenDis, mTetrimino.mY);
-                break;
-            default:
-                greenDis = -1;
-                break;
-        }
-
-        updateTetrimino(oldX, oldY);
-        return greenDis;
-    }
     private void updateTetrimino(int oldX, int oldY) {
         for (int i = oldY; i < (oldY + mTetrimino.mHeight); i++) {
             for (int j = oldX; j < (oldX + mTetrimino.mWidth); j++) {
