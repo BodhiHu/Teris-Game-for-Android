@@ -6,7 +6,6 @@ package com.shawnhu.mechanicsgames.tetris;
 public interface GameListener {
     void onStarted();
     void onPaused();
-    void onResumed();
     void onRun();
     void onGameOver();
     void onUpdateScore(int score);

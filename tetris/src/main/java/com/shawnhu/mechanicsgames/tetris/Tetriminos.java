@@ -48,6 +48,8 @@ public class Tetriminos {
                 case Z:
                     return 6;
             }
+
+            return 0;
         }
     }
 
@@ -56,12 +58,12 @@ public class Tetriminos {
     static int mHeight;
     static public int mXTileNum;
     static public int mYTileNum;
-    static public int mX;
-    static public int mY;
+    static public int mX = 0;
+    static public int mY = 0;
     static int mTetrimino[][];
     static Tetrimino mT;
 
-    Tetriminos(Tetrimino t) {
+    static void Build(Tetrimino t) {
         mT = t;
         switch (t) {
             case I:
@@ -153,22 +155,32 @@ public class Tetriminos {
 
         return true;
     }
+    static boolean setBounds(int w, int h) {
+        if (w < 0 || h < 0) {
+            return false;
+        }
 
-    static void rotateTeriminoClockWise90(Tetriminos t) {
-        int newWidth = t.mHeight;
-        int newHeight = t.mWidth;
+        mXTileNum = w;
+        mYTileNum = h;
+
+        return true;
+    }
+
+    static void rotateTeriminoClockWise90() {
+        int newWidth = mHeight;
+        int newHeight = mWidth;
         int newArr[][] = new int[newHeight][newWidth];
         //After 90 degrees clockwise rotation:
         //  Row i, Col j => Row j, Col (newWidth - 1 - i)
-        for (int i = 0; i < t.mHeight; i++) {
-            for (int j = 0; j < t.mWidth; j++) {
-                newArr[j][newWidth - 1 - i] = t.mTetrimino[i][j];
+        for (int i = 0; i < mHeight; i++) {
+            for (int j = 0; j < mWidth; j++) {
+                newArr[j][newWidth - 1 - i] = mTetrimino[i][j];
             }
         }
 
-        t.mTetrimino = newArr;
-        t.mWidth = newWidth;
-        t.mHeight = newHeight;
+        mTetrimino = newArr;
+        mWidth = newWidth;
+        mHeight = newHeight;
     }
 
 }

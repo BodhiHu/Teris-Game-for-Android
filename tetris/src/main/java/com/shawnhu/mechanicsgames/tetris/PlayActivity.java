@@ -1,5 +1,8 @@
 package com.shawnhu.mechanicsgames.tetris;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -12,13 +15,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
 import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
 
 
 public class PlayActivity extends ActionBarActivity implements GameListener {
 
     TetrisView mTetrisView;
-    Bundle mTetrisStats;
+    Bundle mTetrisStats = null;
     Button mButtonCtl;
+    TextView mTextScore;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,14 +37,17 @@ public class PlayActivity extends ActionBarActivity implements GameListener {
         }
         */
 
-        mTetrisView = findViewById(R.id.tetrisView);
-        mButtonCtl = findViewById(R.id.buttonCtl);
+        mTetrisView = (TetrisView) findViewById(R.id.tetrisView);
+        mTetrisView.setGameListener(this);
+
+        mButtonCtl = (Button) findViewById(R.id.buttonCtl);
+        mButtonCtl.setEnabled(false);
         if (mButtonCtl != null) {
             mButtonCtl.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     CharSequence btnStr = mButtonCtl.getText();
-                    if (btnStr.toString() == "Start") {
+                    if (btnStr.toString() == "Play") {
                         mTetrisView.runTetris();
                     }
                     else if (btnStr.toString() == "Pause") {
@@ -63,14 +72,20 @@ public class PlayActivity extends ActionBarActivity implements GameListener {
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if (hasFocus) {
-            mTetrisView.startTetris(mTetrisStats);
+            if (mTetrisView.mState == TetrisView.State.IDLE) {
+                mTetrisView.startTetris(mTetrisStats);
+            }
         } else {
-            mTetrisView.pauseTetris();
+            if (mTetrisView.mState == TetrisView.State.RUNNING) {
+                mTetrisView.pauseTetris();
+            }
         }
     }
 
+    @Override
     public void onStarted() {
-        mButtonCtl.setText("Pause");
+        mButtonCtl.setText("Play");
+        mButtonCtl.setEnabled(true);
         mTetrisView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
             @Override
             public boolean onGenericMotion(View v, MotionEvent event) {
@@ -84,7 +99,36 @@ public class PlayActivity extends ActionBarActivity implements GameListener {
                 return true;
             }
         });
-        return;
+    }
+    @Override
+    public void onRun() {
+        mButtonCtl.setText("Pause");
+    }
+    @Override
+    public void onPaused() {
+        mButtonCtl.setText("Play");
+    }
+    @Override
+    public void onUpdateScore(int score) {
+        mTextScore.setText("" + score);
+    }
+    @Override
+    public void onGameOver() {
+        //Toast.makeText()
+        AlertDialog dialog = new AlertDialog.Builder(getApplicationContext())
+                .setTitle("Tetris")
+                .setMessage("Game Over")
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mTetrisView.startTetris(null);
+                    }
+
+                })
+                .setCancelable(false)
+                .create();
+
+        dialog.show();
     }
 
     public int moveTetris(MotionEvent e) {
