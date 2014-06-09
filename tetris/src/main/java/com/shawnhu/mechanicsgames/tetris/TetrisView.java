@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 
 import java.security.InvalidParameterException;
@@ -73,6 +74,24 @@ public class TetrisView extends TileView {
 
     public TetrisView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+    }
+
+    interface TetrisCtlInterface {
+        public boolean onScroll(MotionEvent ev);
+    }
+    protected TetrisCtlInterface mCtl;
+
+    void setTetrisCtlInterface(TetrisCtlInterface ctl) {
+        mCtl = ctl;
+    }
+
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent ev) {
+        if (mCtl != null) {
+            return mCtl.onScroll(ev);
+        }
+
+        return false;
     }
 
     class RefreshHandler extends Handler {
@@ -389,7 +408,9 @@ public class TetrisView extends TileView {
         }
 
         mScore += totalScore;
-        mGameListener.onUpdateScore(mScore);
+        if (totalScore != 0 && mGameListener != null) {
+            mGameListener.onUpdateScore(mScore);
+        }
         mRefreshDelay /= speed;
     }
 

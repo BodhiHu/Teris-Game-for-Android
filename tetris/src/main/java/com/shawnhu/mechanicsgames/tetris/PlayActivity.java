@@ -19,7 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class PlayActivity extends ActionBarActivity implements GameListener {
+public class PlayActivity extends ActionBarActivity implements GameListener, TetrisView.TetrisCtlInterface {
 
     TetrisView mTetrisView;
     Bundle mTetrisStats = null;
@@ -37,6 +37,7 @@ public class PlayActivity extends ActionBarActivity implements GameListener {
         }
         */
 
+        mTextScore = (TextView) findViewById(R.id.textScore);
         mTetrisView = (TetrisView) findViewById(R.id.tetrisView);
         mTetrisView.setGameListener(this);
 
@@ -83,22 +84,20 @@ public class PlayActivity extends ActionBarActivity implements GameListener {
     }
 
     @Override
+    public boolean onScroll(MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_SCROLL:
+                moveTetris(event);
+                return true;
+            default:
+                return false;
+        }
+    }
+    @Override
     public void onStarted() {
         mButtonCtl.setText("Play");
         mButtonCtl.setEnabled(true);
-        mTetrisView.setOnGenericMotionListener(new View.OnGenericMotionListener() {
-            @Override
-            public boolean onGenericMotion(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_SCROLL:
-                        moveTetris(event);
-                        break;
-                    default:
-                        return false;
-                }
-                return true;
-            }
-        });
+        mTetrisView.setTetrisCtlInterface(this);
     }
     @Override
     public void onRun() {
@@ -110,12 +109,14 @@ public class PlayActivity extends ActionBarActivity implements GameListener {
     }
     @Override
     public void onUpdateScore(int score) {
-        mTextScore.setText("" + score);
+        if (mTextScore != null) {
+            mTextScore.setText("Score: " + score);
+        }
     }
     @Override
     public void onGameOver() {
         //Toast.makeText()
-        AlertDialog dialog = new AlertDialog.Builder(getApplicationContext())
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Tetris")
                 .setMessage("Game Over")
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
