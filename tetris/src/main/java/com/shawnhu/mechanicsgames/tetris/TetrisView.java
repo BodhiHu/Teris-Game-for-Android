@@ -76,24 +76,6 @@ public class TetrisView extends TileView {
         super(context, attrs, defStyle);
     }
 
-    interface TetrisCtlInterface {
-        public boolean onScroll(MotionEvent ev);
-    }
-    protected TetrisCtlInterface mCtl;
-
-    void setTetrisCtlInterface(TetrisCtlInterface ctl) {
-        mCtl = ctl;
-    }
-
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent ev) {
-        if (mCtl != null) {
-            return mCtl.onScroll(ev);
-        }
-
-        return false;
-    }
-
     class RefreshHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {

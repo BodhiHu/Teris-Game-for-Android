@@ -3,10 +3,12 @@ package com.shawnhu.mechanicsgames.tetris;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,12 +21,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class PlayActivity extends ActionBarActivity implements GameListener, TetrisView.TetrisCtlInterface {
+public class PlayActivity extends ActionBarActivity
+        implements GameListener,
+        GestureDetector.OnGestureListener {
 
     TetrisView mTetrisView;
     Bundle mTetrisStats = null;
     Button mButtonCtl;
     TextView mTextScore;
+    GestureDetectorCompat mGestureListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +45,13 @@ public class PlayActivity extends ActionBarActivity implements GameListener, Tet
         mTextScore = (TextView) findViewById(R.id.textScore);
         mTetrisView = (TetrisView) findViewById(R.id.tetrisView);
         mTetrisView.setGameListener(this);
+        mGestureListener = new GestureDetectorCompat(this, this);
+        mTetrisView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return mGestureListener.onTouchEvent(event);
+            }
+        });
 
         mButtonCtl = (Button) findViewById(R.id.buttonCtl);
         mButtonCtl.setEnabled(false);
@@ -84,20 +96,34 @@ public class PlayActivity extends ActionBarActivity implements GameListener, Tet
     }
 
     @Override
-    public boolean onScroll(MotionEvent event) {
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_SCROLL:
-                moveTetris(event);
-                return true;
-            default:
-                return false;
-        }
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        moveTetris(e1, e2, velocityX, velocityY);
+        return true;
     }
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+    @Override
+    public void onShowPress(MotionEvent e) {
+    }
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+    @Override
+    public void onLongPress(MotionEvent e) {
+    }
+
+
     @Override
     public void onStarted() {
         mButtonCtl.setText("Play");
         mButtonCtl.setEnabled(true);
-        mTetrisView.setTetrisCtlInterface(this);
     }
     @Override
     public void onRun() {
@@ -132,8 +158,8 @@ public class PlayActivity extends ActionBarActivity implements GameListener, Tet
         dialog.show();
     }
 
-    public int moveTetris(MotionEvent e) {
-        switch (getScrollDir(e)) {
+    public int moveTetris(MotionEvent e1, MotionEvent e2, float vX, float vY) {
+        switch (getScrollDir(e1, e2, vX, vY)) {
             case TetrisView.UP:
                 mTetrisView.rotateTetrimino();
                 return 0;
@@ -150,15 +176,11 @@ public class PlayActivity extends ActionBarActivity implements GameListener, Tet
                 return -1;
         }
     }
-    public int getScrollDir(MotionEvent me) {
-        if (me.getAction() != MotionEvent.ACTION_SCROLL) {
-            return -1;
-        }
-
-        float start_x = me.getHistoricalX(0);
-        float start_y = me.getHistoricalY(0);
-        float end_x   = me.getX();
-        float end_y   = me.getY();
+    public int getScrollDir(MotionEvent e1, MotionEvent e2, float vX, float vY) {
+        float start_x = e1.getX();
+        float start_y = e1.getY();
+        float end_x   = e2.getX();
+        float end_y   = e2.getY();
 
         float vec_x = end_x - start_x;
         float vec_y = end_y - start_y;
