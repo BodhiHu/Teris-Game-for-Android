@@ -49,7 +49,10 @@ public class PlayActivity extends ActionBarActivity
         mTetrisView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                return mGestureListener.onTouchEvent(event);
+                mGestureListener.onTouchEvent(event);
+                Toast.makeText(getApplicationContext(), MotionEvent.actionToString(event.getAction()), Toast.LENGTH_SHORT).show();
+                //return true to let android notify futher actions after ACTION_DOWN
+                return true;
             }
         });
 
@@ -97,7 +100,7 @@ public class PlayActivity extends ActionBarActivity
 
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-        moveTetris(e1, e2, velocityX, velocityY);
+        moveTetris(e1, e2, 1);
         return true;
     }
     @Override
@@ -113,7 +116,12 @@ public class PlayActivity extends ActionBarActivity
     }
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        return false;
+        int x = (int) e.getX() / mTetrisView.mTileViewInfo.mTileSize;
+        //TODO: get an instance of Tetriminos in TetrisView
+        int dir = (x > Tetriminos.mX) ? TetrisView.RIGHT : TetrisView.LEFT;
+        int steps = Math.abs(x-Tetriminos.mX);
+        moveTetris(dir, steps);
+        return true;
     }
     @Override
     public void onLongPress(MotionEvent e) {
@@ -158,25 +166,43 @@ public class PlayActivity extends ActionBarActivity
         dialog.show();
     }
 
-    public int moveTetris(MotionEvent e1, MotionEvent e2, float vX, float vY) {
-        switch (getScrollDir(e1, e2, vX, vY)) {
+    public int moveTetris(int dir, int steps) {
+        switch (dir) {
             case TetrisView.UP:
                 mTetrisView.rotateTetrimino();
                 return 0;
             case TetrisView.DOWN:
-                mTetrisView.mvTetrimino(TetrisView.DOWN, 1);
+                mTetrisView.mvTetrimino(TetrisView.DOWN, TetrisView.TileViewInfo.mYTileCount);
                 return 0;
             case TetrisView.RIGHT:
-                mTetrisView.mvTetrimino(TetrisView.RIGHT, 1);
+                mTetrisView.mvTetrimino(TetrisView.RIGHT, steps);
                 return 0;
             case TetrisView.LEFT:
-                mTetrisView.mvTetrimino(TetrisView.LEFT, 1);
+                mTetrisView.mvTetrimino(TetrisView.LEFT, steps);
                 return 0;
             default:
                 return -1;
         }
     }
-    public int getScrollDir(MotionEvent e1, MotionEvent e2, float vX, float vY) {
+    public int moveTetris(MotionEvent e1, MotionEvent e2, int steps) {
+        switch (getScrollDir(e1, e2)) {
+            case TetrisView.UP:
+                mTetrisView.rotateTetrimino();
+                return 0;
+            case TetrisView.DOWN:
+                mTetrisView.mvTetrimino(TetrisView.DOWN, TetrisView.TileViewInfo.mYTileCount);
+                return 0;
+            case TetrisView.RIGHT:
+                mTetrisView.mvTetrimino(TetrisView.RIGHT, steps);
+                return 0;
+            case TetrisView.LEFT:
+                mTetrisView.mvTetrimino(TetrisView.LEFT, steps);
+                return 0;
+            default:
+                return -1;
+        }
+    }
+    public int getScrollDir(MotionEvent e1, MotionEvent e2) {
         float start_x = e1.getX();
         float start_y = e1.getY();
         float end_x   = e2.getX();

@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.shawnhu.mechanicsgames.tetris.PlayActivity"
-    tools:ignore="MergeRootFrame" >
+    tools:ignore="MergeRootFrame"
+    android:background="@android:color/black">
 
     <LinearLayout
         android:orientation="vertical"
@@ -27,7 +28,8 @@
                 android:layout_marginRight="2dp"
                 android:text="Store: 0"
                 android:id="@+id/textScore"
-                android:textAlignment="center" />
+                android:textAlignment="center"
+                android:textColor="@android:color/white" />
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -40,7 +42,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Play"
-                android:id="@+id/buttonCtl" />
+                android:id="@+id/buttonCtl"
+                android:textColor="@android:color/white" />
         </LinearLayout>
 
         <FrameLayout
