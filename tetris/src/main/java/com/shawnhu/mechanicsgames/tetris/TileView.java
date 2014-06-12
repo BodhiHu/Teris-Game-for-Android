@@ -148,6 +148,10 @@ public class TileView extends View {
         TileViewInfo.mBmpArray[key] = bitmap;
     }
 
+    protected Bitmap getSubTilesBitmap(int start_x, int start_y, int width, int height) {
+        return null;
+    }
+
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);

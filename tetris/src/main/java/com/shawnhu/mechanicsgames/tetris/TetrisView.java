@@ -1,6 +1,7 @@
 package com.shawnhu.mechanicsgames.tetris;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -65,6 +66,7 @@ public class TetrisView extends TileView {
     private int mScore;
     private static int tetriminoStartX;
     private static int tetriminoStartY;
+    private int mNextTetrimino = -1;
 
     private Random RND = new Random();
 
@@ -241,8 +243,18 @@ public class TetrisView extends TileView {
 
     //@return: if false game over
     protected boolean genNewTetrimino() {
-        int rn = Math.abs(RND.nextInt());
-        rn %= Tetriminos.Tetrimino.totalTypes;
+        int rn;
+
+        if (mNextTetrimino == -1) { //first run
+            rn              = Math.abs(RND.nextInt());
+            rn             %= Tetriminos.Tetrimino.totalTypes;
+        } else {
+            rn = mNextTetrimino;
+        }
+
+        mNextTetrimino  = Math.abs(RND.nextInt());
+        mNextTetrimino %= Tetriminos.Tetrimino.totalTypes;
+
         Tetriminos.Build(Tetriminos.Tetrimino.typeOfIdx(rn));
         calculateTetriminoStartXY();
         Tetriminos.setCoordinate(tetriminoStartX, tetriminoStartY);
@@ -396,4 +408,9 @@ public class TetrisView extends TileView {
         mRefreshDelay /= speed;
     }
 
+    public Bitmap getNextTetriminoBmp() {
+        //TODO: bmp; canvas; draw
+        Bitmap NeXT;
+
+    }
 }
