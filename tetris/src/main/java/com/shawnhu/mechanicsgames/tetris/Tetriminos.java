@@ -53,17 +53,20 @@ public class Tetriminos {
         }
     }
 
-    static int mColor;
-    static int mWidth;
-    static int mHeight;
+    int mColor;
+    int mWidth;
+    int mHeight;
     static public int mXTileNum;
     static public int mYTileNum;
     static public int mX = 0;
     static public int mY = 0;
-    static int mTetrimino[][];
-    static Tetrimino mT;
+    int mTetrimino[][];
+    Tetrimino mT;
 
-    static void Build(Tetrimino t) {
+    Tetriminos(Tetrimino t) {
+        Build(t);
+    }
+    void Build(Tetrimino t) {
         mT = t;
         switch (t) {
             case I:
@@ -137,7 +140,7 @@ public class Tetriminos {
         }
     }
 
-    static boolean isOutOfBounds(int x, int y) {
+    boolean isOutOfBounds(int x, int y) {
         if (x < 0 || (x+mWidth-1) > (mXTileNum-1) ||
             y < 0 || (y+mHeight-1) > (mYTileNum-1)) {
             return true;
@@ -145,7 +148,7 @@ public class Tetriminos {
 
         return false;
     }
-    static boolean setCoordinate(int x, int y) {
+    boolean setCoordinate(int x, int y) {
         if (isOutOfBounds(x, y)) {
             return false;
         }
@@ -166,7 +169,7 @@ public class Tetriminos {
         return true;
     }
 
-    static void rotateTeriminoClockWise90() {
+    void rotateTeriminoClockWise90() {
         int newWidth = mHeight;
         int newHeight = mWidth;
         int newArr[][] = new int[newHeight][newWidth];

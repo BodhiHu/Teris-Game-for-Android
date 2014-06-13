@@ -3,6 +3,7 @@ package com.shawnhu.mechanicsgames.tetris;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +31,7 @@ public class PlayActivity extends ActionBarActivity
     Bundle mTetrisStats = null;
     Button mButtonCtl;
     TextView mTextScore;
+    ImageView NeXT_View;
     GestureDetectorCompat mGestureListener;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +46,7 @@ public class PlayActivity extends ActionBarActivity
         */
 
         mTextScore = (TextView) findViewById(R.id.textScore);
+        NeXT_View  = (ImageView) findViewById(R.id.viewNextTetrimino);
         mTetrisView = (TetrisView) findViewById(R.id.tetrisView);
         mTetrisView.setGameListener(this);
         mGestureListener = new GestureDetectorCompat(this, this);
@@ -164,6 +168,16 @@ public class PlayActivity extends ActionBarActivity
                 .create();
 
         dialog.show();
+    }
+    @Override
+    public void onNeXT() {
+        final Bitmap NeXT = mTetrisView.NeXT();
+        NeXT_View.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                NeXT_View.setImageBitmap(NeXT);
+            }
+        }, mTetrisView.mRefreshDelay*10);
     }
 
     public int moveTetris(int dir, int steps) {
