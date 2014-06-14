@@ -58,8 +58,8 @@ public class Tetriminos {
     int mHeight;
     static public int mXTileNum;
     static public int mYTileNum;
-    static public int mX = 0;
-    static public int mY = 0;
+    public int mX = 0;
+    public int mY = 0;
     int mTetrimino[][];
     Tetrimino mT;
 

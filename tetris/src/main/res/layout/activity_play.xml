@@ -5,54 +5,61 @@
     android:layout_height="match_parent"
     tools:context="com.shawnhu.mechanicsgames.tetris.PlayActivity"
     tools:ignore="MergeRootFrame"
-    android:background="@android:color/black">
+    android:background="#ff0605a6">
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:layout_margin="5dp"
+        android:background="#ff0605a6">
 
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="50dp"
             android:layout_gravity="center_horizontal"
-            android:padding="2dp">
+            android:padding="2dp"
+            android:layout_marginBottom="5dp">
 
             <TextView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:layout_weight="1"
                 android:text="Store: 0"
                 android:id="@+id/textScore"
                 android:textColor="@android:color/white"
-                android:layout_marginLeft="5dp"
-                android:textAlignment="center"
-                android:paddingLeft="10dp" />
+                android:paddingLeft="10dp"
+                android:background="#ff000000"
+                android:gravity="center" />
 
             <ImageView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:id="@+id/viewNextTetrimino" />
+                android:id="@+id/viewNextTetrimino"
+                android:background="#ff000000"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:padding="2dp" />
 
             <Button
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:text="Play"
                 android:id="@+id/buttonCtl"
                 android:textColor="@android:color/white"
-                android:paddingRight="20dp"
-                android:layout_marginRight="5dp" />
+                android:paddingRight="20dp" />
         </LinearLayout>
 
         <FrameLayout
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
-            android:layout_gravity="center_horizontal">
+            android:layout_gravity="center_horizontal"
+            android:background="#ff000000">
             <com.shawnhu.mechanicsgames.tetris.TetrisView
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"

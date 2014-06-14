@@ -11,6 +11,7 @@ import android.os.Message;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import java.security.InvalidParameterException;
 import java.util.Random;
@@ -70,7 +71,7 @@ public class TetrisView extends TileView {
     private static int tetriminoStartX;
     private static int tetriminoStartY;
     private int NeXT = -1;
-    private Tetriminos mTetrimino;
+    public Tetriminos mTetrimino = new Tetriminos(Tetriminos.Tetrimino.T);
 
     private Random RND = new Random();
 
@@ -103,7 +104,7 @@ public class TetrisView extends TileView {
 
     }
     private RefreshHandler mRefreshHandler = new RefreshHandler();
-    static long mRefreshDelay = 100;
+    static int mRefreshDelay = 600;
     private static final int UI = 0;
     private static final int GRAVITY = 0;
     protected void updateTetrisView(int how) {
@@ -112,6 +113,7 @@ public class TetrisView extends TileView {
                 if (mvTetrimino(DOWN, 1) <= 0) {
                     if (!genNewTetrimino()) {
                         mState = State.OVER;
+                        clearGame();
                         mGameListener.onGameOver();
                     }
                 }
@@ -120,17 +122,25 @@ public class TetrisView extends TileView {
         mRefreshHandler.delayedUpdate(mRefreshDelay);
     }
 
+    protected void clearGame() {
+        mScore = 0;
+        mRefreshDelay = 600;
+    }
+
     public boolean setGameListener(GameListener l) {
         mGameListener = l;
         return (mGameListener != null);
     }
 
     public void saveGame(Bundle out) {
+        if (out == null) {
+            return;
+        }
         out.putInt(TETRIS_SCORE, mScore);
         out.putInt(TETRIS_STATE, State.getVofState(mState));
         out.putInt(TETRIS_CURRENT_TYPE, Tetriminos.Tetrimino.idxOfType(mTetrimino.mT));
-        out.putInt(TETRIS_CURRENT_X, Tetriminos.mX);
-        out.putInt(TETRIS_CURRENT_Y, Tetriminos.mY);
+        out.putInt(TETRIS_CURRENT_X, mTetrimino.mX);
+        out.putInt(TETRIS_CURRENT_Y, mTetrimino.mY);
         out.putParcelable(TETRIS_VIEW, this.mTileViewInfo);
 
     }
@@ -139,8 +149,8 @@ public class TetrisView extends TileView {
         if (savedState != null) {
             mScore = savedState.getInt(TETRIS_SCORE);
             mState = State.getSofValue(savedState.getInt(TETRIS_STATE));
-            mTetrimino.mT = Tetriminos.Tetrimino.typeOfIdx(savedState.getInt(TETRIS_CURRENT_TYPE));
-            mTetrimino = new Tetriminos(mTetrimino.mT);
+            Tetriminos.Tetrimino mT = Tetriminos.Tetrimino.typeOfIdx(savedState.getInt(TETRIS_CURRENT_TYPE));
+            mTetrimino = new Tetriminos(mT);
             mTetrimino.setCoordinate(savedState.getInt(TETRIS_CURRENT_X), savedState.getInt(TETRIS_CURRENT_Y));
             this.mTileViewInfo = savedState.getParcelable(TETRIS_VIEW);
         } else {
@@ -173,28 +183,31 @@ public class TetrisView extends TileView {
         return true;
     }
     public int mvTetrimino(int direction, int steps) {
+        if (mState != State.RUNNING) {
+            return -1;
+        }
         int deltaDis;
         int greenDis;
-        int oldX = Tetriminos.mX;
-        int oldY = Tetriminos.mY;
+        int oldX = mTetrimino.mX;
+        int oldY = mTetrimino.mY;
         switch (direction) {
             case DOWN:
-                deltaDis = deltaHeight(Tetriminos.mX, Tetriminos.mY);
+                deltaDis = deltaHeight(mTetrimino.mX, mTetrimino.mY);
                 greenDis = deltaDis < steps ? deltaDis : steps;
-                mTetrimino.setCoordinate(Tetriminos.mX, Tetriminos.mY + greenDis);
-                if (greenDis == deltaDis) {
+                mTetrimino.setCoordinate(mTetrimino.mX, mTetrimino.mY + greenDis);
+                if (greenDis <= 0) {
                     mergeTetris();
                 }
                 break;
             case LEFT:
-                deltaDis = deltaWidthL(Tetriminos.mX, Tetriminos.mY);
+                deltaDis = deltaWidthL(mTetrimino.mX, mTetrimino.mY);
                 greenDis = deltaDis < steps ? deltaDis : steps;
-                mTetrimino.setCoordinate(Tetriminos.mX - greenDis, Tetriminos.mY);
+                mTetrimino.setCoordinate(mTetrimino.mX - greenDis, mTetrimino.mY);
                 break;
             case RIGHT:
-                deltaDis = deltaWidthR(Tetriminos.mX, Tetriminos.mY);
+                deltaDis = deltaWidthR(mTetrimino.mX, mTetrimino.mY);
                 greenDis = deltaDis < steps ? deltaDis : steps;
-                mTetrimino.setCoordinate(Tetriminos.mX + greenDis, Tetriminos.mY);
+                mTetrimino.setCoordinate(mTetrimino.mX + greenDis, mTetrimino.mY);
                 break;
             default:
                 greenDis = -1;
@@ -214,23 +227,27 @@ public class TetrisView extends TileView {
             }
         }
 
-        for (int r = Tetriminos.mY; r < Tetriminos.mY + mTetrimino.mHeight; r++) {
-            for (int c = Tetriminos.mX; c < Tetriminos.mX + mTetrimino.mWidth; c++) {
-                if (mTetrimino.mTetrimino[r-Tetriminos.mY][c-Tetriminos.mX] == 1) {
+        for (int r = mTetrimino.mY; r < mTetrimino.mY + mTetrimino.mHeight; r++) {
+            for (int c = mTetrimino.mX; c < mTetrimino.mX + mTetrimino.mWidth; c++) {
+                if (mTetrimino.mTetrimino[r-mTetrimino.mY][c-mTetrimino.mX] == 1) {
                     mTileViewInfo.mTileType[r][c] = COLOR;
                     mTileViewInfo.mTileInfo[r][c] = mTetrimino.mColor;
                 }
             }
         }
+
+        invalidate();
     }
     public boolean rotateTetrimino() {
-        int oldX = Tetriminos.mX;
-        int oldY = Tetriminos.mY;
+        if (mState != State.RUNNING) {
+            return true;
+        }
+        int oldX = mTetrimino.mX;
+        int oldY = mTetrimino.mY;
         int oldWidth = mTetrimino.mWidth;
         int oldHeight = mTetrimino.mHeight;
-        mRefreshHandler.pause();
         mTetrimino.rotateTeriminoClockWise90();
-        if (isCollided(Tetriminos.mX, Tetriminos.mY)) {
+        if (isCollided(mTetrimino.mX, mTetrimino.mY, oldX, oldY, oldWidth, oldHeight)) {
             //TODO: ugly workaround
             mTetrimino.rotateTeriminoClockWise90();
             mTetrimino.rotateTeriminoClockWise90();
@@ -240,8 +257,6 @@ public class TetrisView extends TileView {
 
         updateTetriminoTiles(oldX, oldY, oldWidth, oldHeight);
 
-        mRefreshHandler.run();
-        updateTetrisView(UI);
         return true;
     }
 
@@ -259,17 +274,19 @@ public class TetrisView extends TileView {
         NeXT  = Math.abs(RND.nextInt());
         NeXT %= Tetriminos.Tetrimino.totalTypes;
 
-        mTetrimino = new Tetriminos(Tetriminos.Tetrimino.typeOfIdx(rn));
-        calculateTetriminoStartXY();
-        mTetrimino.setCoordinate(tetriminoStartX, tetriminoStartY);
+        Tetriminos tt = new Tetriminos(Tetriminos.Tetrimino.typeOfIdx(rn));
+        calculateTetriminoStartXY(tt);
+        tt.setCoordinate(tetriminoStartX, tetriminoStartY);
 
-        if (isCollided(Tetriminos.mX, Tetriminos.mY)) {
+        if (isCollided(tt)) {
             return false;
         }
 
-        for (int r = Tetriminos.mY; r < Tetriminos.mY + mTetrimino.mHeight; r++) {
-            for (int c = Tetriminos.mX; c < Tetriminos.mX + mTetrimino.mWidth; c++) {
-                if (mTetrimino.mTetrimino[r-Tetriminos.mY][c-Tetriminos.mX] == 1) {
+        mTetrimino = tt;
+
+        for (int r = mTetrimino.mY; r < mTetrimino.mY + mTetrimino.mHeight; r++) {
+            for (int c = mTetrimino.mX; c < mTetrimino.mX + mTetrimino.mWidth; c++) {
+                if (mTetrimino.mTetrimino[r-mTetrimino.mY][c-mTetrimino.mX] == 1) {
                     mTileViewInfo.mTileType[r][c] = COLOR;
                     mTileViewInfo.mTileInfo[r][c] = mTetrimino.mColor;
                 }
@@ -283,11 +300,40 @@ public class TetrisView extends TileView {
         }
         return true;
     }
-    private boolean isCollided(int X, int Y) {
+    private boolean isCollided(Tetriminos t) {
+        int X = t.mX;
+        int Y = t.mY;
+        if ((X + t.mWidth - 1) > (mTileViewInfo.mXTileCount - 1) ||
+                (Y + t.mHeight - 1) > (mTileViewInfo.mYTileCount - 1)) {
+            return true;
+        }
+
+        for (int i = 0; i < t.mHeight; i++) {
+            for (int j = 0; j < t.mWidth; j++) {
+                if (t.mTetrimino[i][j] == 0) {
+                    continue;
+                }
+
+                int tile_row = i + Y;
+                int tile_col = j + X;
+
+                if (mTileViewInfo.mTileType[tile_row][tile_col] != EMPTY) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+    private boolean isCollided(int X, int Y, int oldX, int oldY, int oldW, int oldH) {
         if ((X + mTetrimino.mWidth - 1) > (mTileViewInfo.mXTileCount - 1) ||
                 (Y + mTetrimino.mHeight - 1) > (mTileViewInfo.mYTileCount - 1)) {
             return true;
         }
+        int oLeft = oldX;
+        int oTop  = oldY;
+        int oRight= oLeft + oldW - 1;
+        int oBottom=oTop + oldH - 1;
         for (int i = 0; i < mTetrimino.mHeight; i++) {
             for (int j = 0; j < mTetrimino.mWidth; j++) {
                 if (mTetrimino.mTetrimino[i][j] == 0) {
@@ -295,7 +341,11 @@ public class TetrisView extends TileView {
                 }
 
                 int tile_row = i + Y;
-                int tile_col = i + X;
+                int tile_col = j + X;
+                if (tile_row >= oTop && tile_row <= oBottom &&
+                    tile_col >= oLeft&& tile_col <= oRight) {
+                    continue;
+                }
 
                 if (mTileViewInfo.mTileType[tile_row][tile_col] != EMPTY) {
                     return true;
@@ -367,37 +417,49 @@ public class TetrisView extends TileView {
         for (int i = oldY; i < (oldY + mTetrimino.mHeight); i++) {
             for (int j = oldX; j < (oldX + mTetrimino.mWidth); j++) {
                 setTileEmpty(i, j);
-                setTileColor(mTetrimino.mColor, (i-oldY+Tetriminos.mY), (j-oldX+Tetriminos.mX));
+                setTileColor(mTetrimino.mColor, (i-oldY+mTetrimino.mY), (j-oldX+mTetrimino.mX));
             }
         }
 
         updateTetrisView(UI);
     }
-    private void calculateTetriminoStartXY() {
+    private void calculateTetriminoStartXY(Tetriminos t) {
         tetriminoStartY = 0;
-        tetriminoStartX = (mTileViewInfo.mXTileCount - mTetrimino.mWidth) / 2;
+        tetriminoStartX = (mTileViewInfo.mXTileCount - t.mWidth) / 2;
     }
     protected void mergeTetris() {
-        int is_row_filled = 0xff;
-        int score = 10;
-        int totalScore = 0;
+        int is_row_filled;
+        float score = 10 * (600 / (float) mRefreshDelay);
+        float totalScore = 0;
         float speed = 1;
-        for (int i = 0; i < mTetrimino.mHeight; i++) {
-            for (int j = 0; j < mTetrimino.mWidth; j++) {
-                is_row_filled &= mTileViewInfo.mTileType[i][j];
+        for (int i = 0; i < mTileViewInfo.mYTileCount; i++) {
+            is_row_filled = 1;
+            for (int j = 0; j < mTileViewInfo.mXTileCount; j++) {
+                switch (mTileViewInfo.mTileType[i][j]) {
+                    case COLOR:
+                        is_row_filled &= COLOR;
+                        break;
+                    case BMP:
+                        is_row_filled &= (BMP >> 1);
+                        break;
+                    case EMPTY:
+                        is_row_filled &= EMPTY;
+                    default:
+                        break;
+                }
             }
-            if (is_row_filled != 0x00) {
+            if (is_row_filled == 1) {
                 totalScore += score;
                 score *= 1.1;
                 speed *= 1.1;
 
                 //let gone the filled row
-                for (int k = 0; k < mTetrimino.mWidth; k++) {
+                for (int k = 0; k < mTileViewInfo.mXTileCount; k++) {
                     setTileEmpty(i, k);
                 }
                 //move down the top rows
                 for (int l = i; l >= 0; l--) {
-                    for (int m = 0; m <= mTetrimino.mWidth; m++) {
+                    for (int m = 0; m < mTileViewInfo.mXTileCount; m++) {
                         if (l > 0) {
                             mTileViewInfo.mTileType[l][m] = mTileViewInfo.mTileType[l-1][m];
                             mTileViewInfo.mTileInfo[l][m] = mTileViewInfo.mTileInfo[l-1][m];
@@ -408,14 +470,16 @@ public class TetrisView extends TileView {
                     }
                 }
 
+                invalidate();
             }
         }
 
-        mScore += totalScore;
+        mScore += (int) totalScore;
         if (totalScore != 0 && mGameListener != null) {
             mGameListener.onUpdateScore(mScore);
         }
         mRefreshDelay /= speed;
+        mRefreshDelay = mRefreshDelay < 100 ? 100 : mRefreshDelay;
     }
 
     public Bitmap NeXT() {

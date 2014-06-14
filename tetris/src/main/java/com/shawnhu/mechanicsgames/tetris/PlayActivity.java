@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.os.Handler;
 import android.support.v4.view.GestureDetectorCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
@@ -22,6 +24,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.shawnhu.mechanicsgames.tetris.util.SystemUiHider;
+
+import java.io.InputStream;
+
 
 public class PlayActivity extends ActionBarActivity
         implements GameListener,
@@ -33,6 +39,11 @@ public class PlayActivity extends ActionBarActivity
     TextView mTextScore;
     ImageView NeXT_View;
     GestureDetectorCompat mGestureListener;
+
+
+    private SystemUiHider mSystemUiHider;
+    private static final int HIDER_FLAGS = SystemUiHider.FLAG_FULLSCREEN;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +56,19 @@ public class PlayActivity extends ActionBarActivity
         }
         */
 
+        View contentView = findViewById(R.id.container);
+        mSystemUiHider = SystemUiHider.getInstance(this, contentView, HIDER_FLAGS);
+        mSystemUiHider.setup();
+        mSystemUiHider.setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener() {
+            @Override
+            public void onVisibilityChange(boolean visible) {
+                if (visible) {
+                    delayedHide(1000);
+                }
+            }
+        });
+        mSystemUiHider.hide();
+
         mTextScore = (TextView) findViewById(R.id.textScore);
         NeXT_View  = (ImageView) findViewById(R.id.viewNextTetrimino);
         mTetrisView = (TetrisView) findViewById(R.id.tetrisView);
@@ -54,7 +78,7 @@ public class PlayActivity extends ActionBarActivity
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 mGestureListener.onTouchEvent(event);
-                Toast.makeText(getApplicationContext(), MotionEvent.actionToString(event.getAction()), Toast.LENGTH_SHORT).show();
+                //Toast.makeText(getApplicationContext(), MotionEvent.actionToString(event.getAction()), Toast.LENGTH_SHORT).show();
                 //return true to let android notify futher actions after ACTION_DOWN
                 return true;
             }
@@ -78,6 +102,23 @@ public class PlayActivity extends ActionBarActivity
         }
     }
 
+    Handler mHideHandler = new Handler();
+    Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            mSystemUiHider.hide();
+        }
+    };
+
+    /**
+     * Schedules a call to hide() in [delay] milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide(int delayMillis) {
+        mHideHandler.removeCallbacks(mHideRunnable);
+        mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         mTetrisStats = savedInstanceState;
@@ -85,13 +126,13 @@ public class PlayActivity extends ActionBarActivity
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        mTetrisView.saveGame(mTetrisStats);
-        outState = mTetrisStats;
+        mTetrisView.saveGame(outState);
     }
 
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         if (hasFocus) {
+            mSystemUiHider.hide();
             if (mTetrisView.mState == TetrisView.State.IDLE) {
                 mTetrisView.startTetris(mTetrisStats);
             }
@@ -122,8 +163,8 @@ public class PlayActivity extends ActionBarActivity
     public boolean onSingleTapUp(MotionEvent e) {
         int x = (int) e.getX() / mTetrisView.mTileViewInfo.mTileSize;
         //TODO: get an instance of Tetriminos in TetrisView
-        int dir = (x > Tetriminos.mX) ? TetrisView.RIGHT : TetrisView.LEFT;
-        int steps = Math.abs(x-Tetriminos.mX);
+        int dir = (x > mTetrisView.mTetrimino.mX) ? TetrisView.RIGHT : TetrisView.LEFT;
+        int steps = Math.abs(x-mTetrisView.mTetrimino.mX);
         moveTetris(dir, steps);
         return true;
     }
@@ -153,7 +194,6 @@ public class PlayActivity extends ActionBarActivity
     }
     @Override
     public void onGameOver() {
-        //Toast.makeText()
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("Tetris")
                 .setMessage("Game Over")
@@ -168,6 +208,7 @@ public class PlayActivity extends ActionBarActivity
                 .create();
 
         dialog.show();
+        mTextScore.setText("Score:0");
     }
     @Override
     public void onNeXT() {
@@ -177,7 +218,8 @@ public class PlayActivity extends ActionBarActivity
             public void run() {
                 NeXT_View.setImageBitmap(NeXT);
             }
-        }, mTetrisView.mRefreshDelay*10);
+        }, 0);
+        //}, mTetrisView.mRefreshDelay);
     }
 
     public int moveTetris(int dir, int steps) {
