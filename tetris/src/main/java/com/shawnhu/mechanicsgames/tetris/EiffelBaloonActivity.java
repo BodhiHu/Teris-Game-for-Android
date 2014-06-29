@@ -41,6 +41,8 @@ public class EiffelBaloonActivity extends ActionBarActivity {
                     startActivity(new Intent(EiffelBaloonActivity.this,
                                   PlayActivity.class));
                 }
+
+                finish();
             }
         };
 
