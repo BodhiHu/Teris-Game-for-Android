@@ -8,6 +8,12 @@
         revision="19.1.0"
         sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28"/>
     <item
+        dex="/Users/shawnhu/shawn/projects/AndroidStudioProjects/MechanicsGames/tetris/build/intermediates/pre-dexed/release/classes-106c358619f9c49f95f90ec34e0429deabcc8f9a.jar"
+        jar="/Users/shawnhu/shawn/projects/AndroidStudioProjects/MechanicsGames/tetris/build/intermediates/exploded-aar/com.android.support/appcompat-v7/19.1.0/classes.jar"
+        jumboMode="false"
+        revision="19.1.0"
+        sha1="3499ceba05ca1f6037c6a2fad73df8f636224a28"/>
+    <item
         dex="/Users/shawnhu/shawn/projects/AndroidStudioProjects/MechanicsGames/tetris/build/intermediates/pre-dexed/debug/support-v4-19.1.0-fe930dc68beb1e566675ce71b270d4091c6c249b.jar"
         jar="/Applications/Android Studio.app/sdk/extras/android/m2repository/com/android/support/support-v4/19.1.0/support-v4-19.1.0.jar"
         jumboMode="false"
