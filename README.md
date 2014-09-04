@@ -1,8 +1,8 @@
 MechanicsGames
 ==============
 
-Yep, not so complicated, it's a tetris game.
+A Tetris Game for Android, just for fun when you get bored.
+
 
 Enjoy, et., leave your comments :)
 
-Hope Mechanics was not registered yet.
